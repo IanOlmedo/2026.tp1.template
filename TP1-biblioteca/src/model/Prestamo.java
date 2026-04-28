@@ -39,4 +39,14 @@ public class Prestamo {
     public boolean estaDevuelto() {
         return fechaDevolucion != null;
     }
+
+    public long calcularDiasRetraso() {
+        if (fechaDevolucion == null) return 0;
+
+        long diasPrestamo = java.time.temporal.ChronoUnit.DAYS.between(fechaPrestamo, fechaDevolucion);
+
+        int diasPermitidos = 7; // podés cambiarlo
+
+        return Math.max(0, diasPrestamo - diasPermitidos);
+    }
 }

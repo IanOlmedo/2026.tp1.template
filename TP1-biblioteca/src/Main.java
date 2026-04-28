@@ -2,93 +2,134 @@ import model.*;
 import repository.*;
 import service.PrestamoService;
 
+import java.util.Scanner;
+
 public class Main {
+
     public static void main(String[] args) {
 
-        // 🔹 Repositorios
+        Scanner scanner = new Scanner(System.in);
+
+        // Repositorios
         LibroRepository libroRepo = new LibroRepository();
         SocioRepository socioRepo = new SocioRepository();
         PrestamoRepository prestamoRepo = new PrestamoRepository();
 
-        // 🔹 Crear datos
-        Libro libro1 = new Libro("123", "Clean Code", "Robert C. Martin", 2008, Categoria.PROGRAMACION);
-        Libro libro2 = new Libro("456", "El Principito", "Saint-Exupéry", 1943, Categoria.LITERATURA);
-
-        Socio socio1 = new SocioEstudiante(1, "Juan", "12345678", "juan@mail.com");
-        Socio socio2 = new SocioDocente(2, "Ana", "87654321", "ana@mail.com");
-
-        // 🔹 Guardar datos
-        libroRepo.guardar(libro1);
-        libroRepo.guardar(libro2);
-
-        socioRepo.guardar(socio1);
-        socioRepo.guardar(socio2);
-
-        // 🔹 Crear service
+        // Service
         PrestamoService prestamoService = new PrestamoService(libroRepo, socioRepo, prestamoRepo);
 
-        try {
+        int opcion;
 
-            // 🔹 PRÉSTAMOS
-            System.out.println("\n--- PRUEBA DE PRÉSTAMO ---");
-            prestamoService.realizarPrestamo("123", 1);
+        do {
+            System.out.println("\n===== BIBLIOTECH =====");
+            System.out.println("1. Alta de libro");
+            System.out.println("2. Alta de socio");
+            System.out.println("3. Realizar préstamo");
+            System.out.println("4. Devolver libro");
+            System.out.println("5. Ver historial");
+            System.out.println("0. Salir");
+            System.out.print("Seleccione una opción: ");
 
-            // Intentar repetir (debería fallar)
-            prestamoService.realizarPrestamo("123", 1);
+            opcion = scanner.nextInt();
+            scanner.nextLine(); // limpiar buffer
 
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+            try {
+                switch (opcion) {
 
-        // 🔹 CONSULTAS
-        System.out.println("\nBuscar libro por ISBN 123:");
-        libroRepo.buscarPorId("123")
-                .ifPresentOrElse(
-                        libro -> System.out.println("Encontrado: " + libro.titulo()),
-                        () -> System.out.println("No encontrado")
-                );
+                    case 1 -> {
+                        System.out.print("ISBN: ");
+                        String isbn = scanner.nextLine();
 
-        System.out.println("\nLista de libros:");
-        libroRepo.buscarTodos().forEach(libro ->
-                System.out.println(libro.titulo())
-        );
+                        System.out.print("Título: ");
+                        String titulo = scanner.nextLine();
 
-        System.out.println("\nBuscar socio ID 1:");
-        socioRepo.buscarPorId(1)
-                .ifPresent(s -> System.out.println("Socio: " + s.getNombre()));
+                        System.out.print("Autor: ");
+                        String autor = scanner.nextLine();
 
-        System.out.println("\nLímites:");
-        System.out.println(socio1.getNombre() + ": " + socio1.getLimitePrestamos());
-        System.out.println(socio2.getNombre() + ": " + socio2.getLimitePrestamos());
+                        System.out.print("Año: ");
+                        int anio = scanner.nextInt();
+                        scanner.nextLine();
 
-        // 🔹 BÚSQUEDAS AVANZADAS
-        System.out.println("\nBuscar por título 'clean':");
-        libroRepo.buscarPorTitulo("clean")
-                .forEach(l -> System.out.println(l.titulo()));
+                        System.out.println("Categoría: PROGRAMACION, HISTORIA, CIENCIA, LITERATURA, OTROS");
+                        Categoria categoria = Categoria.valueOf(scanner.nextLine().toUpperCase());
 
-        System.out.println("\nBuscar por autor 'martin':");
-        libroRepo.buscarPorAutor("martin")
-                .forEach(l -> System.out.println(l.titulo()));
+                        Libro libro = new Libro(isbn, titulo, autor, anio, categoria);
+                        libroRepo.guardar(libro);
 
-        System.out.println("\nBuscar por categoría PROGRAMACION:");
-        libroRepo.buscarPorCategoria(Categoria.PROGRAMACION)
-                .forEach(l -> System.out.println(l.titulo()));
+                        System.out.println("Libro agregado correctamente");
+                    }
 
-        // 🔹 DEVOLUCIÓN
-        try {
-            System.out.println("\n--- DEVOLUCIÓN ---");
-            prestamoService.devolverLibro("123", 1);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+                    case 2 -> {
+                        System.out.print("ID: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine();
 
-        // 🔹 HISTORIAL
-        System.out.println("\n--- HISTORIAL ---");
-        prestamoService.obtenerHistorial()
-                .forEach(p -> System.out.println(
-                        p.getLibro().titulo() + " - " +
-                                p.getSocio().getNombre() + " - " +
-                                (p.estaDevuelto() ? "Devuelto" : "Pendiente")
-                ));
+                        System.out.print("Nombre: ");
+                        String nombre = scanner.nextLine();
+
+                        System.out.print("DNI: ");
+                        String dni = scanner.nextLine();
+
+                        System.out.print("Email: ");
+                        String email = scanner.nextLine();
+
+                        System.out.println("Tipo: 1-Estudiante / 2-Docente");
+                        int tipo = scanner.nextInt();
+                        scanner.nextLine();
+
+                        Socio socio = (tipo == 1)
+                                ? new SocioEstudiante(id, nombre, dni, email)
+                                : new SocioDocente(id, nombre, dni, email);
+
+                        socioRepo.guardar(socio);
+
+                        System.out.println("Socio agregado correctamente");
+                    }
+
+                    case 3 -> {
+                        System.out.print("ISBN del libro: ");
+                        String isbn = scanner.nextLine();
+
+                        System.out.print("ID del socio: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine();
+
+                        prestamoService.realizarPrestamo(isbn, id);
+                    }
+
+                    case 4 -> {
+                        System.out.print("ISBN del libro: ");
+                        String isbn = scanner.nextLine();
+
+                        System.out.print("ID del socio: ");
+                        int id = scanner.nextInt();
+                        scanner.nextLine();
+
+                        prestamoService.devolverLibro(isbn, id);
+                    }
+
+                    case 5 -> {
+                        System.out.println("\n--- HISTORIAL ---");
+                        prestamoService.obtenerHistorial()
+                                .forEach(p -> System.out.println(
+                                        p.getLibro().titulo() + " - " +
+                                                p.getSocio().getNombre() + " - " +
+                                                (p.estaDevuelto() ? "Devuelto" : "Pendiente")
+                                ));
+                    }
+
+                    case 0 -> System.out.println("Saliendo del sistema...");
+
+                    default -> System.out.println("Opción inválida");
+
+                }
+
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+
+        } while (opcion != 0);
+
+        scanner.close();
     }
 }

@@ -74,5 +74,18 @@ public class Main {
         System.out.println("\nBuscar por categoría PROGRAMACION:");
         libroRepo.buscarPorCategoria(Categoria.PROGRAMACION)
                 .forEach(l -> System.out.println(l.titulo()));
+
+        System.out.println("\n--- DEVOLUCIÓN ---");
+
+        prestamoService.devolverLibro("123", 1);
+
+        System.out.println("\n--- HISTORIAL ---");
+
+        prestamoService.obtenerHistorial()
+                .forEach(p -> System.out.println(
+                        p.getLibro().titulo() + " - " +
+                                p.getSocio().getNombre() + " - " +
+                                (p.estaDevuelto() ? "Devuelto" : "Pendiente")
+                ));
     }
 }

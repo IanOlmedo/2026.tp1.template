@@ -54,4 +54,28 @@ public class PrestamoService {
 
         System.out.println("Préstamo realizado con éxito");
     }
+
+    public void devolverLibro(String isbn, int socioId) {
+
+        Prestamo prestamo = prestamoRepo.buscarTodos().stream()
+                .filter(p -> p.getLibro().isbn().equals(isbn))
+                .filter(p -> p.getSocio().getId() == socioId)
+                .filter(p -> !p.estaDevuelto())
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
+
+        prestamo.registrarDevolucion();
+
+        long retraso = prestamo.calcularDiasRetraso();
+
+        if (retraso > 0) {
+            System.out.println("Libro devuelto con retraso de " + retraso + " días");
+        } else {
+            System.out.println("Libro devuelto a tiempo");
+        }
+    }
+
+    public List<Prestamo> obtenerHistorial() {
+        return prestamoRepo.buscarTodos();
+    }
 }

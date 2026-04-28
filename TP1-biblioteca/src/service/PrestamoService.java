@@ -1,5 +1,9 @@
 package service;
 
+import exception.BibliotecaException;
+import exception.EntidadNoEncontradaException;
+import exception.LibroNoDisponibleException;
+import exception.LimitePrestamosException;
 import model.Libro;
 import model.Prestamo;
 import model.Socio;
@@ -23,20 +27,20 @@ public class PrestamoService {
         this.prestamoRepo = prestamoRepo;
     }
 
-    public void realizarPrestamo(String isbn, int socioId) {
+    public void realizarPrestamo(String isbn, int socioId) throws BibliotecaException {
 
         Libro libro = libroRepo.buscarPorId(isbn)
-                .orElseThrow(() -> new RuntimeException("Libro no encontrado"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Libro"));
 
         Socio socio = socioRepo.buscarPorId(socioId)
-                .orElseThrow(() -> new RuntimeException("Socio no encontrado"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Socio"));
 
         // Validar si el libro ya está prestado
         boolean libroPrestado = prestamoRepo.buscarTodos().stream()
                 .anyMatch(p -> p.getLibro().isbn().equals(isbn) && !p.estaDevuelto());
 
         if (libroPrestado) {
-            throw new RuntimeException("Libro no disponible");
+            throw new LibroNoDisponibleException();
         }
 
         // Validar límite de préstamos
@@ -45,7 +49,7 @@ public class PrestamoService {
                 .count();
 
         if (prestamosActivos >= socio.getLimitePrestamos()) {
-            throw new RuntimeException("Límite de préstamos alcanzado");
+            throw new LimitePrestamosException();
         }
 
         // Crear préstamo
@@ -55,14 +59,14 @@ public class PrestamoService {
         System.out.println("Préstamo realizado con éxito");
     }
 
-    public void devolverLibro(String isbn, int socioId) {
+    public void devolverLibro(String isbn, int socioId) throws BibliotecaException {
 
         Prestamo prestamo = prestamoRepo.buscarTodos().stream()
                 .filter(p -> p.getLibro().isbn().equals(isbn))
                 .filter(p -> p.getSocio().getId() == socioId)
                 .filter(p -> !p.estaDevuelto())
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Préstamo no encontrado"));
+                .orElseThrow(() -> new EntidadNoEncontradaException("Préstamo"));
 
         prestamo.registrarDevolucion();
 
